@@ -48,17 +48,29 @@ def rearrage_public_key(public_key_path):
         file.write(json.dumps(result))
 
 
-def encrypt(iv, key, block_size, plaintext):
+def encrypt(key, block_size, plaintext):
+    iv = key['iv']
+    kc = key['kc']
+    ki = key['ki']
     
     rijndael_cbc = RijndaelCbc(
-        key=key,  # if it is a string we can use base64.b64decode(key),
+        key=kc,  # if it is a string we can use base64.b64decode(key),
         iv=iv,
         padding=ZeroPadding(block_size),
         block_size=block_size
     )
     ciphertext = rijndael_cbc.encrypt(plaintext)
+
+    rijndael_cbc = RijndaelCbc(
+        key=ki,  # if it is a string we can use base64.b64decode(key),
+        iv=iv,
+        padding=ZeroPadding(block_size),
+        block_size=block_size
+    )
+
+    MAC = rijndael_cbc.encrypt(plaintext)[-block_size:]
     
-    return ciphertext
+    return ciphertext, MAC
 
 
 def read_file(path, mode):
@@ -72,3 +84,4 @@ def read_file(path, mode):
 ##########################################
 
             
+
