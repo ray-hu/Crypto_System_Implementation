@@ -161,8 +161,10 @@ if __name__ == "__main__":
     print(" "*20 +"[GENERATE KEYS]")
     str(input('Ready to generate private keys? y/n :'))
 
-    private_key = getRandomNBitInteger(key_size)
-    private_key = {'private_key':private_key}
+    private_key_c = getRandomNBitInteger(key_size)
+    private_key_i = getRandomNBitInteger(key_size)
+
+    private_key = {'kc':private_key_c, 'ki': private_key_i}
     with open(private_key_path, 'w') as file:
         file.write(json.dumps(private_key))
     print('Saved private key in ', private_key_path)
@@ -182,8 +184,8 @@ if __name__ == "__main__":
     #print("="*80)
     print(" "*20 +"[SEND FILES]")
     flag = str(input('Ready to send files? y/n:'))
-    filePath = os.path.join(cwd, "02.pdf")
-    str(input('Path of the file to be sent: "server/02.pdf"? y/n :'))
+    filePath = os.path.join(cwd, "03.pdf")
+    str(input('Path of the file to be sent: "server/03.pdf"? y/n :'))
     # load its private key
     #private_key_c, private_key_i = read_file()
     plaintext = read_file(filePath, 'rb')
@@ -192,11 +194,21 @@ if __name__ == "__main__":
     #print(plaintext)
     system_confi = eval(read_file(systemconfiPath, 'r'))
     private_key = eval(read_file(private_key_path, 'r'))
-    key = long_to_bytes(private_key['private_key'])
+    key_c = long_to_bytes(private_key['kc'])
+    key_i = long_to_bytes(private_key['ki'])
     iv = long_to_bytes(getRandomNBitInteger(key_size))
 
-    ciphertext = encrypt(iv, key, system_confi['block_size'], plaintext)
-    cipher_message = {'ip':'0', 'iv':iv, 'ciphertext': ciphertext, 'file_name': "02.pdf"}
+    key = {'iv':iv, 'kc':key_c, 'ki': key_i}
+    
+
+        ######### revise 
+    ciphertext, MAC = encrypt(key, system_confi['block_size'], plaintext)
+
+        #print(ciphertext, MAC)
+
+        # concantecate ciphertext and MAC
+    ciphertext, MAC = encrypt(key, system_confi['block_size'], plaintext)
+    cipher_message = {'ip':'0', 'iv':iv, 'ciphertext': ciphertext, 'MAC': MAC, 'file_name': "03.pdf"}
         #print(cipher_message)
     try:
         os.remove(cipherPath)
@@ -215,3 +227,4 @@ if __name__ == "__main__":
     ##########################################################################
 
         
+
